@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="script.js" defer></script>
+  <meta charset="UTF-8" />
+  <title>Login - Study Anyways</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="script.js" defer></script>
+</head>
+<body class="bg-light">
+  <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card p-4 shadow-sm" style="width: 100%; max-width: 400px;">
+      <h4 class="mb-3 text-center">👋 Welcome to Study Anyways</h4>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" placeholder="example@email.com" />
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" placeholder="Enter your password" />
+      </div>
+
+      <button class="btn btn-primary w-100 mb-2" onclick="login()">Login</button>
+      <button class="btn btn-outline-secondary w-100 mb-3" onclick="register()">Register</button>
+
+      <div class="text-center mb-2 text-muted">— OR —</div>
+
+      <button class="btn btn-danger w-100" onclick="googleLogin()">
+        <img src="https://img.icons8.com/color/16/000000/google-logo.png" class="me-2" />
+        Sign in with Google
+      </button>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Study Anyways</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-color: #f4f8fc;
+      --text-color: #333;
+      --card-bg: #fff;
+      --primary-color: #1d70b8;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark {
+      --bg-color: #121212;
+      --text-color: #f1f1f1;
+      --card-bg: #1e1e1e;
+      --primary-color: #4fc3f7;
+      --shadow: 0 8px 24px rgba(255, 255, 255, 0.05);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+
+    .navbar {
+      background-color: var(--primary-color) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: none;
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+
+    input.form-control, select.form-select {
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      border: 1px solid #ced4da;
+      transition: all 0.2s ease;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.1rem var(--primary-color);
+    }
+
+    button {
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      transform: scale(1.02);
+    }
+
+    button.btn-primary {
+      background-color: var(--primary-color);
+      border-radius: 0.5rem;
+      font-weight: 600;
+      border: none;
+    }
+
+    button.btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    #result {
+      background: var(--card-bg);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-top: 1rem;
+      border: 1px solid #e3e3e3;
+      font-size: 1rem;
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+
+    button.btn-success {
+      border-radius: 0.5rem;
+      font-weight: 600;
+      border: none;
+    }
+
+    h2 {
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      margin-left: 1rem;
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <!-- ✅ 顶部导航 -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Study Anyways</a>
+      <div class="d-flex">
+        <button id="auth-btn" class="btn btn-outline-light btn-sm me-2"></button>
+        <button id="toggle-theme" class="theme-toggle" title="Toggle Theme">🌓</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ✅ 主体区域 -->
+  <div class="container py-5">
+    <h2 class="text-center mb-4">📘 Generate Your Study Plan</h2>
+
+    <div class="card p-4 shadow-sm mx-auto" style="max-width: 600px;">
+      <div class="mb-3">
+        <label for="topic" class="form-label">What do you want to study?</label>
+        <input type="text" class="form-control" id="topic" placeholder="e.g., Calculus basics" />
+      </div>
+
+      <div class="mb-3">
+        <label for="time" class="form-label">Available Time (e.g., 4 hours, 7 days)</label>
+        <input type="text" class="form-control" id="time" placeholder="e.g., 7 days" />
+      </div>
+
+      <div class="mb-3">
+        <label for="depth" class="form-label">Study Depth</label>
+        <select id="depth" class="form-select">
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary w-100" onclick="generatePlan()">🚀 Generate Plan</button>
+
+      <!-- ✅ Spinner -->
+      <div class="text-center mt-3" id="spinner" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <div class="mt-4" id="result" style="white-space: pre-wrap;"></div>
+
+      <div class="mt-3" id="save-section" style="display: none;">
+        <button class="btn btn-success w-100" onclick="savePlan()">💾 Save this plan</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
