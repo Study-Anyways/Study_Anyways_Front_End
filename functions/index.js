@@ -1,41 +1,43 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const { OpenAI } = require("openai");
+const cors = require("cors"); // ✅ 引入 CORS
 
-// 1️⃣ 引入 Secret
 const openAiSecret = defineSecret("OPENAI_API_KEY");
 
-// 2️⃣ 正确设置为 Cloud Functions 运行选项（带上 secret）
+const corsHandler = cors({ origin: true }); // ✅ 允许所有域名跨域访问
+
 exports.generatePlan = onRequest(
   {
     timeoutSeconds: 60,
     memory: "256MiB",
-    secrets: [openAiSecret], // 👈 加上这个
+    secrets: [openAiSecret],
   },
   async (req, res) => {
-    const { topic, time, depth } = req.body;
+    corsHandler(req, res, async () => {
+      const { topic, time, depth } = req.body;
 
-    if (!topic || !time || !depth) {
-      return res.status(400).send("Missing required fields");
-    }
+      if (!topic || !time || !depth) {
+        return res.status(400).send("Missing required fields");
+      }
 
-    const prompt = `Please generate a detailed study plan for the topic "${topic}". The user has "${time}" available and wants to learn to a "${depth}" level. Break it down into daily or hourly tasks. Be structured, practical, and inspiring.`;
+      const prompt = `Please generate a detailed study plan for the topic "${topic}". The user has "${time}" available and wants to learn to a "${depth}" level. Break it down into daily or hourly tasks. Be structured, practical, and inspiring.`;
 
-    try {
-      // ✅ 通过 process.env 读取你设定的密钥
-      const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
+      try {
+        const openai = new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-      });
+        const completion = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt }],
+        });
 
-      res.json(completion);
-    } catch (error) {
-      console.error("OpenAI error:", error);
-      res.status(500).send("Failed to generate plan");
-    }
+        res.json(completion);
+      } catch (error) {
+        console.error("OpenAI error:", error);
+        res.status(500).send("Failed to generate plan");
+      }
+    });
   }
 );
