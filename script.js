@@ -53,13 +53,15 @@ function generatePlan() {
   const time = document.getElementById("time").value;
   const depth = document.getElementById("depth").value;
   const resultDiv = document.getElementById("result");
+  const spinner = document.getElementById("spinner");
 
   if (!topic || !time || !depth) {
     alert("Please fill in all the fields!");
     return;
   }
 
-  resultDiv.innerText = "Generating your plan. Please wait...";
+  resultDiv.innerText = "";
+  spinner.style.display = "block"; // animation
 
   fetch("https://us-central1-study-anyways.cloudfunctions.net/generatePlan", {
     method: "POST",
@@ -69,15 +71,21 @@ function generatePlan() {
     body: JSON.stringify({ topic, time, depth })
   })
     .then(res => res.json())
+    
     .then(data => {
-      if (data.choices && data.choices[0].message) {
-        resultDiv.innerText = data.choices[0].message.content;
-      } else {
-        resultDiv.innerText = "Generation failed. Please try again.";
-      }
-    })
+  spinner.style.display = "none"; // ✅ 请求完成后隐藏 spinner
+
+  if (data.message) {
+    resultDiv.innerText = data.message;
+  } else if (data.choices && data.choices[0].message) {
+    resultDiv.innerText = data.choices[0].message.content;
+  } else {
+    resultDiv.innerText = "Generation failed. Please try again.";
+  }
+})
     .catch(err => {
       console.error("Error generating plan:", err);
+      spinner.style.display = "none";
       resultDiv.innerText = "Something went wrong. Please try again.";
     });
 }
