@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <meta charset="UTF-8" />
   <title>Study Anyways</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -89,6 +90,7 @@
       transition: all 0.3s ease;
     }
 
+
     button.btn-success {
       border-radius: 0.5rem;
       font-weight: 600;
@@ -164,6 +166,13 @@
 
       <div class="mt-3" id="save-section" style="display: none;">
         <button class="btn btn-success w-100" onclick="savePlan()">💾 Save this plan</button>
+       <!-- ✅ 历史记录按钮与展示 -->
+       <button class="btn btn-secondary w-100 mt-2" onclick="loadHistory()">📜 View History</button>
+
+       <div class="mt-4" id="history-section" style="display:none;">
+         <h5>🕓 Your Past Study Plans</h5>
+         <ul id="history-list" class="list-group mt-2"></ul>
+       </div>
       </div>
     </div>
   </div>

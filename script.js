@@ -143,3 +143,41 @@ document.addEventListener("DOMContentLoaded", () => {
 function savePlan() {
   alert("📝 This will be saved to your learning history (coming soon)");
 }
+
+// ✅ 加载历史记录
+function loadHistory() {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    alert("Please log in to view history.");
+    return;
+  }
+
+  const historyList = document.getElementById("history-list");
+  const historySection = document.getElementById("history-section");
+  historyList.innerHTML = "Loading...";
+
+  firebase.firestore().collection("history")
+    .where("uid", "==", user.uid)
+    .orderBy("createdAt", "desc")
+    .limit(10)
+    .get()
+    .then((querySnapshot) => {
+      historyList.innerHTML = "";
+      if (querySnapshot.empty) {
+        historyList.innerHTML = "<li class='list-group-item'>No history found.</li>";
+      } else {
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const item = document.createElement("li");
+          item.className = "list-group-item";
+          item.innerText = `📝 ${data.topic} — ${data.response.substring(0, 80)}...`;
+          historyList.appendChild(item);
+        });
+      }
+      historySection.style.display = "block";
+    })
+    .catch((err) => {
+      console.error("Failed to load history:", err);
+      historyList.innerHTML = "<li class='list-group-item'>Error loading history.</li>";
+    });
+}
