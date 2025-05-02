@@ -73,6 +73,7 @@ function generatePlan() {
     .then(res => res.json())
     
     .then(data => {
+  console.log("Response data:", data);
   spinner.style.display = "none"; // ✅ 请求完成后隐藏 spinner
 
   if (data.message) {
