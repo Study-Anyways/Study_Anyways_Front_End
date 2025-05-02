@@ -61,34 +61,44 @@ function generatePlan() {
   }
 
   resultDiv.innerText = "";
-  spinner.style.display = "block"; // animation
+  spinner.style.display = "block";
 
-  fetch("https://us-central1-study-anyways.cloudfunctions.net/generatePlan", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ topic, time, depth })
-  })
-    .then(res => res.json())
-    
-    .then(data => {
-  console.log("Response data:", data);
-  spinner.style.display = "none"; // ✅ 请求完成后隐藏 spinner
+  const user = firebase.auth().currentUser;
 
-  if (data.message) {
-    resultDiv.innerText = data.message;
-  } else if (data.choices && data.choices[0].message) {
-    resultDiv.innerText = data.choices[0].message.content;
-  } else {
-    resultDiv.innerText = "Generation failed. Please try again.";
+  if (!user) {
+    alert("Please log in to generate and save your study plan.");
+    spinner.style.display = "none";
+    return;
   }
-})
-    .catch(err => {
-      console.error("Error generating plan:", err);
-      spinner.style.display = "none";
-      resultDiv.innerText = "Something went wrong. Please try again.";
+
+  // ✅ 获取用户 token 和 uid
+  user.getIdToken().then((token) => {
+    return fetch("https://us-central1-study-anyways.cloudfunctions.net/generatePlan", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // ✅ 附加身份验证
+      },
+      body: JSON.stringify({ topic, time, depth, uid: user.uid }) // ✅ 传 uid
     });
+  })
+  .then(res => res.json())
+  .then(data => {
+    spinner.style.display = "none";
+
+    if (data.message) {
+      resultDiv.innerText = data.message;
+    } else if (data.choices && data.choices[0].message) {
+      resultDiv.innerText = data.choices[0].message.content;
+    } else {
+      resultDiv.innerText = "Generation failed. Please try again.";
+    }
+  })
+  .catch(err => {
+    console.error("Error generating plan:", err);
+    spinner.style.display = "none";
+    resultDiv.innerText = "Something went wrong. Please try again.";
+  });
 }
 
 // 登录状态切换
