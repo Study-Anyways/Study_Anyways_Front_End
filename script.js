@@ -141,7 +141,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 保存计划（预留）
 function savePlan() {
-  alert("📝 This will be saved to your learning history (coming soon)");
+  const user = firebase.auth().currentUser;
+  const topic = document.getElementById("topic").value;
+  const time = document.getElementById("time").value;
+  const depth = document.getElementById("depth").value;
+  const result = document.getElementById("result").innerText;
+
+  if (!user) {
+    alert("Please log in to save your plan.");
+    return;
+  }
+
+  if (!result || result === "Generating your plan. Please wait...") {
+    alert("No plan to save yet.");
+    return;
+  }
+
+  firebase.firestore().collection("history").add({
+    uid: user.uid,
+    topic: topic,
+    time: time,
+    depth: depth,
+    response: result,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(() => {
+    alert("✅ Plan saved to your history!");
+  })
+  .catch((err) => {
+    console.error("Failed to save plan:", err);
+    alert("❌ Failed to save your plan.");
+  });
 }
 
 // ✅ 加载历史记录
