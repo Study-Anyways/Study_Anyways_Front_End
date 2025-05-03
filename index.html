@@ -133,25 +133,75 @@
   <div class="container py-5">
     <h2 class="text-center mb-4">📘 Generate Your Study Plan</h2>
 
+ <!-- ✅ selector -->
+
     <div class="card p-4 shadow-sm mx-auto" style="max-width: 600px;">
       <div class="mb-3">
         <label for="topic" class="form-label">What do you want to study?</label>
         <input type="text" class="form-control" id="topic" placeholder="e.g., Calculus basics" />
       </div>
 
-      <div class="mb-3">
-        <label for="time" class="form-label">Available Time (e.g., 4 hours, 7 days)</label>
-        <input type="text" class="form-control" id="time" placeholder="e.g., 7 days" />
-      </div>
+      
 
-      <div class="mb-3">
-        <label for="depth" class="form-label">Study Depth</label>
-        <select id="depth" class="form-select">
-          <option value="Beginner">Beginner</option>
-          <option value="Intermediate">Intermediate</option>
-          <option value="Advanced">Advanced</option>
-        </select>
-      </div>
+<div class="mb-3">
+  <label for="details" class="form-label">Specific Content (optional)</label>
+  <input type="text" class="form-control" id="details" placeholder="e.g., Chapter 1-3, bonding...">
+</div>
+
+<div class="mb-3">
+  <label for="daily-hours" class="form-label">Study Hours per Day</label>
+  <input type="number" class="form-control" id="daily-hours" placeholder="e.g., 1.5" step="0.5" min="0">
+</div>
+
+<div class="mb-3">
+  <label for="total-duration" class="form-label">Total Study Duration</label>
+  <select id="total-duration" class="form-select">
+    <option value="1 week">1 week</option>
+    <option value="2 weeks">2 weeks</option>
+    <option value="4 weeks">4 weeks</option>
+    <option value="a quarter">a quarter</option>
+    <option value="half a year">half a year</option>
+    <option value="a year">a year</option>
+  </select>
+</div>
+
+<div class="mb-3">
+  <label for="goal" class="form-label">Learning Goal</label>
+  <select id="goal" class="form-select">
+    <option value="">(Will auto-fill based on subject)</option>
+  </select>
+</div>
+
+<div class="mb-3">
+  <label for="response-style" class="form-label">Preferred Response Style</label>
+  <select id="response-style" class="form-select">
+    <option value="concise">Concise</option>
+    <option value="detailed">Detailed</option>
+    <option value="links-heavy">Data-focused</option>
+  </select>
+</div>
+
+<div class="mb-3">
+  <label for="resources" class="form-label">Existing Resources or Help</label>
+  <textarea id="resources" class="form-control" rows="3" placeholder="e.g. textbook, videos, class notes..."></textarea>
+</div>
+
+<div class="mb-3">
+  <label class="form-label">Preferred Learning Style</label><br>
+  <div class="form-check form-check-inline">
+    <input class="form-check-input" type="checkbox" id="visual" value="visual" name="learning-style">
+    <label class="form-check-label" for="visual">Visual</label>
+  </div>
+  <div class="form-check form-check-inline">
+    <input class="form-check-input" type="checkbox" id="auditory" value="auditory" name="learning-style">
+    <label class="form-check-label" for="auditory">Auditory</label>
+  </div>
+  <div class="form-check form-check-inline">
+    <input class="form-check-input" type="checkbox" id="kinesthetic" value="kinesthetic" name="learning-style">
+    <label class="form-check-label" for="kinesthetic">Kinesthetic</label>
+  </div>
+</div>
+
 
       <button class="btn btn-primary w-100" onclick="generatePlan()">🚀 Generate Plan</button>
 

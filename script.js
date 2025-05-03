@@ -47,18 +47,38 @@ function googleLogin() {
     });
 }
 
+// 收集回答
+function collectStudyInput() {
+  const topic = document.getElementById('topic').value;
+  const details = document.getElementById('details').value;
+  const time = document.getElementById('time').value;
+  const depth = document.getElementById('depth').value;
+  const dailyHours = document.getElementById('daily-hours').value;
+  const totalDuration = document.getElementById('total-duration').value;
+  const goal = document.getElementById('goal').value;
+  const responseStyle = document.getElementById('response-style').value;
+  const resources = document.getElementById('resources').value;
+
+  const learningStyles = [];
+  document.querySelectorAll('input[name="learning-style"]:checked').forEach(input => {
+    learningStyles.push(input.value);
+  });
+
+  return {
+    topic, details, time, depth,
+    dailyHours, totalDuration, goal,
+    responseStyle, resources, learningStyles
+  };
+}
+
 // 生成学习计划
+
 function generatePlan() {
-  const topic = document.getElementById("topic").value;
-  const time = document.getElementById("time").value;
-  const depth = document.getElementById("depth").value;
+  const input = collectStudyInput();
+  console.log("Collected input:", input);
+
   const resultDiv = document.getElementById("result");
   const spinner = document.getElementById("spinner");
-
-  if (!topic || !time || !depth) {
-    alert("Please fill in all the fields!");
-    return;
-  }
 
   resultDiv.innerText = "";
   spinner.style.display = "block";
@@ -70,6 +90,38 @@ function generatePlan() {
     spinner.style.display = "none";
     return;
   }
+
+  user.getIdToken().then((token) => {
+    return fetch("https://us-central1-study-anyways.cloudfunctions.net/generatePlan", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ 
+        ...input, // 将所有收集的字段发送给 Cloud Function
+        uid: user.uid 
+      })
+    });
+  })
+  .then(res => res.json())
+  .then(data => {
+    spinner.style.display = "none";
+
+    if (data.message) {
+      resultDiv.innerText = data.message;
+    } else if (data.choices && data.choices[0].message) {
+      resultDiv.innerText = data.choices[0].message.content;
+    } else {
+      resultDiv.innerText = "Generation failed. Please try again.";
+    }
+  })
+  .catch(err => {
+    console.error("Error generating plan:", err);
+    spinner.style.display = "none";
+    resultDiv.innerText = "Something went wrong. Please try again.";
+  });
+}
 
   // ✅ 获取用户 token 和 uid
   user.getIdToken().then((token) => {
@@ -139,12 +191,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// 保存计划（预留）
+// 保存
 function savePlan() {
   const user = firebase.auth().currentUser;
-  const topic = document.getElementById("topic").value;
-  const time = document.getElementById("time").value;
-  const depth = document.getElementById("depth").value;
   const result = document.getElementById("result").innerText;
 
   if (!user) {
@@ -157,11 +206,11 @@ function savePlan() {
     return;
   }
 
+  const input = collectStudyInput(); // ✅ 获取所有学习输入
+
   firebase.firestore().collection("history").add({
     uid: user.uid,
-    topic: topic,
-    time: time,
-    depth: depth,
+    ...input, // ✅ 把所有学习输入打包
     response: result,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   })
