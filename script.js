@@ -260,3 +260,5 @@ function loadHistory() {
       historyList.innerHTML = "<li class='list-group-item'>Error loading history.</li>";
     });
 }
+
+window.generatePlan = generatePlan;
