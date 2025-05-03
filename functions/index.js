@@ -1,73 +1,78 @@
-const { onRequest } = require("firebase-functions/v2/https");
-const { defineSecret } = require("firebase-functions/params");
-const { OpenAI } = require("openai");
-const cors = require("cors");
-
-// ✅ 添加 Firestore 支持
-const admin = require("firebase-admin");
-const { getFirestore } = require("firebase-admin/firestore");
-if (!admin.apps.length) admin.initializeApp();
-const db = getFirestore();
-
-// ✅ 定义 OPENAI_API_KEY secret
-const openAiSecret = defineSecret("OPENAI_API_KEY");
-
-// ✅ 设置 CORS 策略（允许所有来源）
-const corsHandler = cors({ origin: true });
-
-// ✅ 导出函数
-exports.generatePlan = onRequest(
-  {
-    timeoutSeconds: 60,
-    memory: "256MiB",
-    secrets: [openAiSecret],
-  },
-  async (req, res) => {
-    corsHandler(req, res, async () => {
-      const apiKey = process.env.OPENAI_API_KEY;
-
-      if (!apiKey) {
-        console.error("❌ OPENAI_API_KEY not set");
-        return res.status(500).send("Server misconfiguration: No API Key");
-      }
-
-      const { topic, time, depth, uid } = req.body; // ✅ 接收 uid（可从前端传）
-
-      console.log("📥 Received request with:", { topic, time, depth, uid });
-
-      if (!topic || !time || !depth) {
-        console.warn("⚠️ Missing required fields");
-        return res.status(400).send("Missing required fields");
-      }
-
-      const prompt = `Please generate a detailed study plan for the topic "${topic}". The user has "${time}" available and wants to learn to a "${depth}" level. Break it down into daily or hourly tasks. Be structured, practical, and inspiring.`;
-
-      try {
-        const openai = new OpenAI({ apiKey });
-
-        const completion = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: prompt }],
-        });
-
-        const result = completion.choices?.[0]?.message?.content || "";
-        console.log("✅ OpenAI response:", result);
-
-        // ✅ 写入 Firestore 历史记录
-        await db.collection("history").add({
-          uid: uid || "anonymous",
-          topic,
-          time,
-          depth,
-          response: result,
-          createdAt: new Date()
-        });
-
-        res.json({ message: result });
-      } catch (error) {
-        console.error("❌ OpenAI API error:", error);
-        res.status(500).send("Failed to generate plan");
-      }
-    });
+function generatePlan() {
+  const input = collectStudyInput();
+  const validationError = validateInput(input);
+  if (validationError) {
+    alert(validationError);
+    return;
   }
-);
+  const resultDiv = document.getElementById("result");
+  const spinner = document.getElementById("spinner");
+
+  resultDiv.innerText = "";
+  spinner.style.display = "block";
+
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    alert("Please log in first.");
+    spinner.style.display = "none";
+    return;
+  }
+
+  user.getIdToken()
+    .then(token => {
+      const payload = {
+        topic: input.topic,
+        time: input.totalDuration,
+        depth: input.goal,
+        uid: user.uid,
+        details: input.details,
+        dailyHours: input.dailyHours,
+        responseStyle: input.responseStyle,
+        resources: input.resources,
+        learningStyles: input.learningStyles
+      };
+
+      const prompt = `\nCreate a detailed, structured, and inspiring study plan for the topic "${payload.topic}".\n\nDetails provided: ${payload.details}.\nThe student has "${payload.time}" total time, aiming to study "${payload.dailyHours}" hours per day.\nThey want to reach the "${payload.depth}" level of understanding.\n\nPreferred response style: ${payload.responseStyle}.\nCurrent resources: ${payload.resources}.\nLearning style(s): ${payload.learningStyles?.join(", ") || "not specified"}.\n\nBreak the plan into daily (or hourly) chunks if needed.\nBe practical and motivational. Keep the user's needs and context in mind.\n`;
+
+      console.log("Sending payload:", JSON.stringify(payload, null, 2));
+      console.log("Generated prompt:", prompt);
+
+      return fetch("https://us-central1-study-anyways.cloudfunctions.net/generatePlan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+    })
+    .then(async res => {
+      spinner.style.display = "none";
+      const contentType = res.headers.get("content-type") || "";
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Server error: ${errorText}`);
+      }
+
+      if (contentType.includes("application/json")) {
+        return res.json();
+      } else {
+        const text = await res.text();
+        return { message: text };
+      }
+    })
+    .then(data => {
+      if (data.message) {
+        resultDiv.innerText = data.message;
+      } else if (data.choices && data.choices[0].message) {
+        resultDiv.innerText = data.choices[0].message.content;
+      } else {
+        resultDiv.innerText = "Generation failed. Please try again.";
+      }
+    })
+    .catch(err => {
+      console.error("Error generating plan:", err);
+      resultDiv.innerText = "Something went wrong: " + err.message;
+    });
+}

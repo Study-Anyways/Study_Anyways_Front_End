@@ -87,11 +87,11 @@ function validateInput(input) {
 // ✅ 生成学习计划
 function generatePlan() {
   const input = collectStudyInput();
-const validationError = validateInput(input);
-if (validationError) {
-  alert(validationError);
-  return;
-}
+  const validationError = validateInput(input);
+  if (validationError) {
+    alert(validationError);
+    return;
+  }
   const resultDiv = document.getElementById("result");
   const spinner = document.getElementById("spinner");
 
@@ -105,32 +105,48 @@ if (validationError) {
     return;
   }
 
-  user.getIdToken().then(token => {
-    return fetch("https://us-central1-study-anyways.cloudfunctions.net/generatePlan", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ ...input, uid: user.uid })
-    });
-  })
-  .then(res => res.json())
-  .then(data => {
-    spinner.style.display = "none";
-    if (data.message) {
-      resultDiv.innerText = data.message;
-    } else if (data.choices && data.choices[0].message) {
-      resultDiv.innerText = data.choices[0].message.content;
-    } else {
-      resultDiv.innerText = "Generation failed. Please try again.";
-    }
-  })
-  .catch(err => {
-    console.error("Error generating plan:", err);
-    spinner.style.display = "none";
-    resultDiv.innerText = "Something went wrong.";
+user.getIdToken().then(token => {
+  const payload = { ...input, uid: user.uid };  // 把数据封装成变量
+  console.log("Sending payload:", JSON.stringify(payload, null, 2));  // 打印出来方便检查
+
+  return fetch("https://us-central1-study-anyways.cloudfunctions.net/generatePlan", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(payload)
   });
+})
+    .then(async res => {
+      spinner.style.display = "none";
+      const contentType = res.headers.get("content-type") || "";
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Server error: ${errorText}`);
+      }
+
+      if (contentType.includes("application/json")) {
+        return res.json();
+      } else {
+        const text = await res.text();
+        return { message: text };
+      }
+    })
+    .then(data => {
+      if (data.message) {
+        resultDiv.innerText = data.message;
+      } else if (data.choices && data.choices[0].message) {
+        resultDiv.innerText = data.choices[0].message.content;
+      } else {
+        resultDiv.innerText = "Generation failed. Please try again.";
+      }
+    })
+    .catch(err => {
+      console.error("Error generating plan:", err);
+      resultDiv.innerText = "Something went wrong: " + err.message;
+    });
 }
 
 // ✅ 登录状态管理
