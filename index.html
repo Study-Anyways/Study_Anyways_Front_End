@@ -1,114 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  
   <meta charset="UTF-8" />
   <title>Study Anyways</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg-color: #f4f8fc;
-      --text-color: #333;
+      --primary-color: #8B0000; /* Cornell red */
+      --bg-color: #fefefe;
+      --text-color: #222;
+      --placeholder-color: rgba(139, 0, 0, 0.3); /* red with more transparency */
       --card-bg: #fff;
-      --primary-color: #1d70b8;
-      --shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
     }
-
     body.dark {
-      --bg-color: #121212;
-      --text-color: #f1f1f1;
-      --card-bg: #1e1e1e;
-      --primary-color: #4fc3f7;
-      --shadow: 0 8px 24px rgba(255, 255, 255, 0.05);
+      --bg-color: #1d1d1d;
+      --text-color: #f5f5f5;
+      --placeholder-color: rgba(139, 0, 0, 0.3);
+      --card-bg: #292929;
+      --primary-color: #B22222;
+      --shadow: 0 4px 24px rgba(255, 255, 255, 0.1);
     }
-
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'EB Garamond', serif;
       background-color: var(--bg-color);
       color: var(--text-color);
-      transition: all 0.3s ease;
+      transition: all 0.4s ease;
     }
-
+    ::placeholder {
+      color: var(--placeholder-color);
+    }
     .navbar {
       background-color: var(--primary-color) !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
-
     .card {
       background-color: var(--card-bg);
-      border: none;
       border-radius: 1rem;
       box-shadow: var(--shadow);
-      transition: all 0.3s ease;
+      border: none;
+      transition: transform 0.3s ease;
     }
-
-    input.form-control, select.form-select {
-      border-radius: 0.5rem;
-      padding: 0.75rem;
-      border: 1px solid #ced4da;
-      transition: all 0.2s ease;
-      background-color: var(--card-bg);
-      color: var(--text-color);
+    .card:hover {
+      transform: translateY(-5px);
     }
-
-    input:focus, select:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 0.1rem var(--primary-color);
-    }
-
-    button {
-      transition: all 0.2s ease;
-    }
-
-    button:hover {
-      transform: scale(1.02);
-    }
-
-    button.btn-primary {
+    .btn {
       background-color: var(--primary-color);
-      border-radius: 0.5rem;
-      font-weight: 600;
+      color: white;
       border: none;
+      transition: all 0.3s ease-in-out;
     }
-
-    button.btn-primary:hover {
-      opacity: 0.9;
+    .btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      opacity: 0.95;
     }
-
-    #result {
-      background: var(--card-bg);
-      border-radius: 0.75rem;
-      padding: 1rem;
-      margin-top: 1rem;
-      border: 1px solid #e3e3e3;
-      font-size: 1rem;
-      color: var(--text-color);
-      transition: all 0.3s ease;
+    .btn-outline-light {
+      color: white;
+      border-color: white;
     }
-
-
-    button.btn-success {
-      border-radius: 0.5rem;
-      font-weight: 600;
-      border: none;
-    }
-
-    h2 {
-      font-weight: 600;
-      color: var(--text-color);
-    }
-
     .theme-toggle {
       background: none;
       border: none;
+      font-size: 1.4rem;
       color: white;
-      font-size: 1.2rem;
       cursor: pointer;
-      margin-left: 1rem;
+    }
+    #background-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+      font-family: 'Courier New', monospace;
+      font-size: 30px;
+      color: rgba(0, 0, 0, 0.15);
+    }
+    #scrolling-text {
+      animation: scroll-right 300s linear infinite;
+      filter: brightness(1.3) contrast(1.5);
+    }
+    #scrolling-text .quote-line {
+      display: block;
+      white-space: nowrap;
+      font-size: 30px;
+      margin: 0.5em 0;
+    }
+    @keyframes scroll-right {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -116,115 +100,127 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script src="script.js" defer></script>
 </head>
-
 <body>
-  <!-- ✅ 顶部导航 -->
-  <nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container-fluid">
+  <div id="background-overlay">
+    <div id="scrolling-text">
+      <div class="quote-line">The unexamined life is not worth living — Socrates · To improve is to change — Churchill · Knowledge is power — Bacon · Live as if you were to die tomorrow. Learn as if you were to live forever — Gandhi · That’s one small step for man, one giant leap for mankind — Armstrong</div>
+      <div class="quote-line">History is written by the victors — Churchill · If you want to go fast, go alone; if you want to go far, go together — African proverb · The journey of a thousand miles begins with one step — Lao Tzu · Time and tide wait for no man — Chaucer · Fortune favors the bold — Virgil</div>
+      <div class="quote-line">Those who do not learn history are doomed to repeat it — Santayana · In the middle of difficulty lies opportunity — Einstein · He who has a why to live can bear almost any how — Nietzsche · Do not go where the path may lead, go instead where there is no path and leave a trail — Thoreau · What you do not want done to yourself, do not do to others — Confucius</div>
+      <div class="quote-line">To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment — Emerson · Be the change that you wish to see in the world — Gandhi · Imperfection is beauty, madness is genius and it's better to be absolutely ridiculous than absolutely boring — Monroe · Be yourself; everyone else is already taken — Wilde · Don’t compromise yourself: you’re all you have — Grisham</div>
+      <div class="quote-line">The arc of the moral universe is long, but it bends toward justice — MLK · Injustice anywhere is a threat to justice everywhere — MLK · The only way to do great work is to love what you do — Jobs · The best revenge is massive success — Sinatra · Success usually comes to those who are too busy to be looking for it — Thoreau</div>
+      <div class="quote-line">The only thing we have to fear is fear itself — Roosevelt · Nothing is so painful to the human mind as a great and sudden change — Shelley · Courage is grace under pressure — Hemingway · Fear defeats more people than any other one thing in the world — Emerson · Do the thing you fear and the death of fear is certain — Emerson</div>
+      <div class="quote-line">I have a dream — Martin Luther King Jr. · Ask not what your country can do for you, ask what you can do for your country — Kennedy · Government of the people, by the people, for the people, shall not perish — Lincoln · Give me liberty, or give me death — Henry · All men are created equal — Declaration</div>
+      <div class="quote-line">E = mc² · F = ma · a² + b² = c² · ΔG = ΔH - TΔS · PV = nRT · ∑F = 0</div>
+      <div class="quote-line">sin²θ + cos²θ = 1 · ∇ · E = ρ/ε₀ · λ = h/p · KE = ½mv² · Δx·Δp ≥ ℏ/2 · sin(ωt)</div>
+      <div class="quote-line">Life is what happens when you're busy making other plans — Lennon · The greatest glory in living lies not in never falling, but in rising every time we fall — Mandela · You must be the change you wish to see in the world — Gandhi · In three words I can sum up everything I've learned about life: it goes on — Frost · Keep calm and carry on — British Govt</div>
+      <div class="quote-line">Whether you think you can or you think you can't, you're right — Ford · The way to get started is to quit talking and begin doing — Disney · The future belongs to those who believe in the beauty of their dreams — Roosevelt · Don't watch the clock; do what it does. Keep going — Levenson · Believe you can and you're halfway there — Roosevelt</div>
+      <div class="quote-line">If you can dream it, you can do it — Disney · Act as if what you do makes a difference. It does — James · Success is not final, failure is not fatal: it is the courage to continue that counts — Churchill · Hardships often prepare ordinary people for an extraordinary destiny — Lewis · Go confidently in the direction of your dreams. Live the life you have imagined — Thoreau</div>
+      <div class="quote-line">Your time is limited, so don't waste it living someone else's life — Jobs · Don't judge each day by the harvest you reap but by the seeds that you plant — Emerson · To live is the rarest thing in the world. Most people exist, that is all — Wilde · Love the life you live. Live the life you love — Marley · The best way out is always through — Frost</div>
+      <div class="quote-line">Be kind, for everyone you meet is fighting a hard battle — Philo · Happiness is not something ready made. It comes from your own actions — Dalai Lama · The purpose of our lives is to be happy — Dalai Lama · Turn your wounds into wisdom — Winfrey · Life shrinks or expands in proportion to one's courage — Nin</div>
+      <div class="quote-line">The only limit to our realization of tomorrow is our doubts of today — Roosevelt · What we think, we become — Buddha · Do what you can, with what you have, where you are — Roosevelt · It's not whether you get knocked down, it's whether you get up — Lombardi · The best revenge is to be unlike him who performed the injury — Aurelius</div>
+      <div class="quote-line">We must not allow other people's limited perceptions to define us — Satir · The mind is everything. What you think you become — Buddha · It's never too late to be what you might have been — Eliot · If opportunity doesn't knock, build a door — Berle · Everything you’ve ever wanted is on the other side of fear — Addair</div>
+      <div class="quote-line">Challenges are what make life interesting and overcoming them is what makes life meaningful — Marine · Try not to become a man of success, but rather try to become a man of value — Einstein · What lies behind us and what lies before us are tiny matters compared to what lies within us — Emerson · The best way to predict your future is to create it — Lincoln · Don't let yesterday take up too much of today — Rogers</div>
+      <div class="quote-line">It does not matter how slowly you go as long as you do not stop — Confucius · A person who never made a mistake never tried anything new — Einstein · Everything has beauty, but not everyone sees it — Confucius · The only true wisdom is in knowing you know nothing — Socrates · Life is really simple, but we insist on making it complicated — Confucius</div>
+      <div class="quote-line">Dream big and dare to fail — Vaughan · You only live once, but if you do it right, once is enough — West · Keep smiling, because life is a beautiful thing and there's so much to smile about — Monroe · The journey not the arrival matters — Eliot · Don't count the days, make the days count — Ali</div>
+    </div>
+  </div>
+  <nav class="navbar navbar-dark">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
       <a class="navbar-brand" href="#">Study Anyways</a>
-      <div class="d-flex">
-        <button id="auth-btn" class="btn btn-outline-light btn-sm me-2"></button>
+      <div class="d-flex gap-2">
+        <button id="auth-btn" class="btn btn-outline-light btn-sm"></button>
         <button id="toggle-theme" class="theme-toggle" title="Toggle Theme">🌓</button>
       </div>
     </div>
   </nav>
 
-  <!-- ✅ 主体区域 -->
   <div class="container py-5">
-    <h2 class="text-center mb-4">📘 Generate Your Study Plan</h2>
-
- <!-- ✅ selector -->
-
-    <div class="card p-4 shadow-sm mx-auto" style="max-width: 600px;">
+    <h2 class="text-center mb-4">Generate Your Study Plan</h2>
+    <div class="card p-4 mx-auto" style="max-width: 620px;">
       <div class="mb-3">
-        <label for="topic" class="form-label">What do you want to study?</label>
-        <input type="text" class="form-control" id="topic" placeholder="e.g., Calculus basics" />
+        <label for="topic" class="form-label">Study Topic</label>
+        <input type="text" id="topic" class="form-control" placeholder="Enter topic" />
       </div>
-
-      
-
-<div class="mb-3">
-  <label for="details" class="form-label">Specific Content (optional)</label>
-  <input type="text" class="form-control" id="details" placeholder="e.g., Chapter 1-3, bonding...">
-</div>
-
-<div class="mb-3">
-  <label for="daily-hours" class="form-label">Study Hours per Day</label>
-  <input type="number" class="form-control" id="daily-hours" placeholder="e.g., 1.5" step="0.5" min="0">
-</div>
-
-<div class="mb-3">
-  <label for="total-duration" class="form-label">Total Study Duration</label>
-  <select id="total-duration" class="form-select">
-    <option value="1 week">1 week</option>
-    <option value="2 weeks">2 weeks</option>
-    <option value="4 weeks">4 weeks</option>
-    <option value="a quarter">a quarter</option>
-    <option value="half a year">half a year</option>
-    <option value="a year">a year</option>
-  </select>
-</div>
-
-<div class="mb-3">
-  <label for="goal" class="form-label">Learning Goal</label>
-  <select id="goal" class="form-select">
-    <option value="">(Will auto-fill based on subject)</option>
-  </select>
-</div>
-
-<div class="mb-3">
-  <label for="response-style" class="form-label">Preferred Response Style</label>
-  <select id="response-style" class="form-select">
-    <option value="concise">Concise</option>
-    <option value="detailed">Detailed</option>
-    <option value="links-heavy">Data-focused</option>
-  </select>
-</div>
-
-<div class="mb-3">
-  <label for="resources" class="form-label">Existing Resources or Help</label>
-  <textarea id="resources" class="form-control" rows="3" placeholder="e.g. textbook, videos, class notes..."></textarea>
-</div>
-
-<div class="mb-3">
-  <label class="form-label">Preferred Learning Style</label><br>
-  <div class="form-check form-check-inline">
-    <input class="form-check-input" type="checkbox" id="visual" value="visual" name="learning-style">
-    <label class="form-check-label" for="visual">Visual</label>
-  </div>
-  <div class="form-check form-check-inline">
-    <input class="form-check-input" type="checkbox" id="auditory" value="auditory" name="learning-style">
-    <label class="form-check-label" for="auditory">Auditory</label>
-  </div>
-  <div class="form-check form-check-inline">
-    <input class="form-check-input" type="checkbox" id="kinesthetic" value="kinesthetic" name="learning-style">
-    <label class="form-check-label" for="kinesthetic">Kinesthetic</label>
-  </div>
-</div>
-
-
-      <button class="btn btn-primary w-100" onclick="generatePlan()">🚀 Generate Plan</button>
-
-      <!-- ✅ Spinner -->
-      <div class="text-center mt-3" id="spinner" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
+      <div class="mb-3">
+        <label for="details" class="form-label">Specific Content</label>
+        <input type="text" id="details" class="form-control" placeholder="Give details" />
+      </div>
+      <div class="mb-3">
+        <label for="daily-hours" class="form-label">Study Hours / Day</label>
+        <input type="number" id="daily-hours" class="form-control" placeholder="Hours per day" />
+      </div>
+      <div class="mb-3">
+        <label for="total-duration" class="form-label">Total Duration</label>
+        <select id="total-duration" class="form-select">
+          <option value="2 days">2 days</option>
+          <option value="10 days">10 days</option>
+          <option value="20 days">20 days</option>
+          <option value="30 days">1 month</option>
+          <option value="60 days">2 months</option>
+          <option value="90 days">3 months</option>
+          <option value="180 days">6 months</option>
+          <option value="365 days">1 year</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="goal" class="form-label">Learning Goal</label>
+        <input type="text" id="goal" class="form-control" placeholder="Enter your goal" />
+      </div>
+      <div class="mb-3">
+        <label for="response-style" class="form-label">Response Style</label>
+        <select id="response-style" class="form-select">
+          <option value="concise">Concise</option>
+          <option value="detailed">Detailed</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="resources" class="form-label">Existing Resources</label>
+        <textarea id="resources" class="form-control" placeholder="List any resources..."></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Preferred Learning Style</label><br />
+        <div class="form-check form-check-inline">
+          <input type="checkbox" class="form-check-input" id="visual" value="visual" name="learning-style">
+          <label class="form-check-label" for="visual">Visual</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input type="checkbox" class="form-check-input" id="auditory" value="auditory" name="learning-style">
+          <label class="form-check-label" for="auditory">Auditory</label>
         </div>
       </div>
 
-      <div class="mt-4" id="result" style="white-space: pre-wrap;"></div>
+      <button class="btn w-100 mb-2" id="generate-btn">Generate Plan</button>
+      <div class="text-center" id="spinner" style="display:none">
+        <div class="spinner-border text-primary" role="status"></div>
+      </div>
+      <div class="mt-3" id="result"></div>
 
-      <div class="mt-3" id="save-section" style="display: none;">
-        <button class="btn btn-success w-100" onclick="savePlan()">💾 Save this plan</button>
-       <!-- ✅ 历史记录按钮与展示 -->
-       <button class="btn btn-secondary w-100 mt-2" onclick="loadHistory()">📜 View History</button>
-
-       <div class="mt-4" id="history-section" style="display:none;">
-         <h5>🕓 Your Past Study Plans</h5>
-         <ul id="history-list" class="list-group mt-2"></ul>
-       </div>
+      <div id="save-section" style="display:none">
+        <button class="btn w-100 mt-3" onclick="savePlan()">Save Plan</button>
+        <button class="btn w-100 mt-2" onclick="loadHistory()">View History</button>
+        <div class="mt-3" id="history-section" style="display:none">
+          <h5 class="mb-2">Your Past Study Plans</h5>
+          <ul id="history-list" class="list-group"></ul>
+        </div>
       </div>
     </div>
   </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.getElementById("toggle-theme");
+      if (toggle) {
+        toggle.addEventListener("click", () => {
+          document.body.classList.toggle("dark");
+          localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+        });
+        if (localStorage.getItem("theme") === "dark") {
+          document.body.classList.add("dark");
+        }
+      }
+    });
+  }).
+  </script>
+
 </body>
 </html>

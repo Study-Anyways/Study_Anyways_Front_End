@@ -47,17 +47,15 @@ function googleLogin() {
     });
 }
 
-// 收集回答
+// ✅ 收集用户输入
 function collectStudyInput() {
-  const topic = document.getElementById('topic').value;
-  const details = document.getElementById('details').value;
-  const time = document.getElementById('time').value;
-  const depth = document.getElementById('depth').value;
-  const dailyHours = document.getElementById('daily-hours').value;
-  const totalDuration = document.getElementById('total-duration').value;
-  const goal = document.getElementById('goal').value;
-  const responseStyle = document.getElementById('response-style').value;
-  const resources = document.getElementById('resources').value;
+  const topic = document.getElementById('topic')?.value || "";
+  const details = document.getElementById('details')?.value || "";
+  const dailyHours = document.getElementById('daily-hours')?.value || "";
+  const totalDuration = document.getElementById('total-duration')?.value || "";
+  const goal = document.getElementById('goal')?.value || "";
+  const responseStyle = document.getElementById('response-style')?.value || "";
+  const resources = document.getElementById('resources')?.value || "";
 
   const learningStyles = [];
   document.querySelectorAll('input[name="learning-style"]:checked').forEach(input => {
@@ -65,18 +63,20 @@ function collectStudyInput() {
   });
 
   return {
-    topic, details, time, depth,
-    dailyHours, totalDuration, goal,
-    responseStyle, resources, learningStyles
+    topic,
+    details,
+    dailyHours,
+    totalDuration,
+    goal,
+    responseStyle,
+    resources,
+    learningStyles
   };
 }
 
-// 生成学习计划
-
+// ✅ 生成学习计划
 function generatePlan() {
   const input = collectStudyInput();
-  console.log("Collected input:", input);
-
   const resultDiv = document.getElementById("result");
   const spinner = document.getElementById("spinner");
 
@@ -84,30 +84,25 @@ function generatePlan() {
   spinner.style.display = "block";
 
   const user = firebase.auth().currentUser;
-
   if (!user) {
-    alert("Please log in to generate and save your study plan.");
+    alert("Please log in first.");
     spinner.style.display = "none";
     return;
   }
 
-  user.getIdToken().then((token) => {
+  user.getIdToken().then(token => {
     return fetch("https://us-central1-study-anyways.cloudfunctions.net/generatePlan", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ 
-        ...input, // 将所有收集的字段发送给 Cloud Function
-        uid: user.uid 
-      })
+      body: JSON.stringify({ ...input, uid: user.uid })
     });
   })
   .then(res => res.json())
   .then(data => {
     spinner.style.display = "none";
-
     if (data.message) {
       resultDiv.innerText = data.message;
     } else if (data.choices && data.choices[0].message) {
@@ -119,33 +114,39 @@ function generatePlan() {
   .catch(err => {
     console.error("Error generating plan:", err);
     spinner.style.display = "none";
-    resultDiv.innerText = "Something went wrong. Please try again.";
+    resultDiv.innerText = "Something went wrong.";
   });
 }
 
-
-// 登录状态切换
-firebase.auth().onAuthStateChanged((user) => {
+// ✅ 登录状态管理
+firebase.auth().onAuthStateChanged(user => {
   const authBtn = document.getElementById("auth-btn");
-  const saveSection = document.getElementById("save-section");
+  if (!authBtn) return;
 
   if (user) {
-    authBtn.innerText = "Logout";
+    authBtn.textContent = "Logout";
     authBtn.onclick = () => {
       firebase.auth().signOut().then(() => {
-        alert("You are logged out");
-        window.location.reload();
+        alert("You are logged out.");
+        location.reload();
       });
     };
-    if (saveSection) saveSection.style.display = "block";
   } else {
-    authBtn.innerText = "Login";
+    authBtn.textContent = "Login";
     authBtn.onclick = () => {
       window.location.href = "login.html";
     };
-    if (saveSection) saveSection.style.display = "none";
   }
 });
+
+// ✅ 页面加载后挂载按钮事件
+window.addEventListener("DOMContentLoaded", () => {
+  const generateBtn = document.getElementById("generate-btn");
+  if (generateBtn) generateBtn.addEventListener("click", generatePlan);
+});
+
+
+
 
 // 夜间模式切换
 document.addEventListener("DOMContentLoaded", () => {
