@@ -74,9 +74,24 @@ function collectStudyInput() {
   };
 }
 
+function validateInput(input) {
+  const required = ["topic", "dailyHours", "totalDuration", "goal"];
+  for (let field of required) {
+    if (!input[field] || input[field].trim() === "") {
+      return `Field "${field}" is required and cannot be empty.`;
+    }
+  }
+  return null;
+}
+
 // ✅ 生成学习计划
 function generatePlan() {
   const input = collectStudyInput();
+const validationError = validateInput(input);
+if (validationError) {
+  alert(validationError);
+  return;
+}
   const resultDiv = document.getElementById("result");
   const spinner = document.getElementById("spinner");
 
