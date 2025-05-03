@@ -123,35 +123,6 @@ function generatePlan() {
   });
 }
 
-  // ✅ 获取用户 token 和 uid
-  user.getIdToken().then((token) => {
-    return fetch("https://us-central1-study-anyways.cloudfunctions.net/generatePlan", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // ✅ 附加身份验证
-      },
-      body: JSON.stringify({ topic, time, depth, uid: user.uid }) // ✅ 传 uid
-    });
-  })
-  .then(res => res.json())
-  .then(data => {
-    spinner.style.display = "none";
-
-    if (data.message) {
-      resultDiv.innerText = data.message;
-    } else if (data.choices && data.choices[0].message) {
-      resultDiv.innerText = data.choices[0].message.content;
-    } else {
-      resultDiv.innerText = "Generation failed. Please try again.";
-    }
-  })
-  .catch(err => {
-    console.error("Error generating plan:", err);
-    spinner.style.display = "none";
-    resultDiv.innerText = "Something went wrong. Please try again.";
-  });
-}
 
 // 登录状态切换
 firebase.auth().onAuthStateChanged((user) => {
@@ -261,4 +232,7 @@ function loadHistory() {
     });
 }
 
+// Ensure global binding
+window.collectStudyInput = collectStudyInput;
 window.generatePlan = generatePlan;
+window.savePlan = savePlan;
