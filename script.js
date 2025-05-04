@@ -84,18 +84,13 @@ function validateInput(input) {
   return null;
 }
 
-// ✅ 生成学习计划
+//Generate Plan
 function generatePlan() {
   const input = collectStudyInput();
-  const validationError = validateInput(input);
-  if (validationError) {
-    alert(validationError);
-    return;
-  }
-  const resultDiv = document.getElementById("result");
-  const spinner = document.getElementById("spinner");
+  const error = validateInput(input);
+  if (error) { alert(error); return; }
 
-  resultDiv.innerText = "";
+  const spinner = document.getElementById("spinner");
   spinner.style.display = "block";
 
   const user = firebase.auth().currentUser;
@@ -105,49 +100,42 @@ function generatePlan() {
     return;
   }
 
-user.getIdToken().then(token => {
-  const payload = { ...input, uid: user.uid };  // 把数据封装成变量
-  console.log("Sending payload:", JSON.stringify(payload, null, 2));  // 打印出来方便检查
-
-  return fetch("https://us-central1-study-anyways.cloudfunctions.net/generatePlan", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(payload)
+  user.getIdToken().then(token => {
+    return fetch(
+      "https://us-central1-study-anyways.cloudfunctions.net/generatePlan",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...input, uid: user.uid })
+      }
+    );
+  })
+  .then(async res => {
+    spinner.style.display = "none";
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  })
+  .then(data => {
+    // four panels:
+    document.getElementById("introContent").innerText      = data.introduction   || "";
+    document.getElementById("mainContent").innerText       = data.mainContent    || "";
+    document.getElementById("resourcesContent").innerText  = data.resources      || "";
+    document.getElementById("strategiesContent").innerText = data.strategies     || "";
+  })
+  .catch(err => {
+    console.error("Error generating plan:", err);
+    // fallback into a single div if something breaks
+    document.getElementById("result").innerText =
+      "Oops! " + err.message;
+    spinner.style.display = "none";
   });
-})
-    .then(async res => {
-      spinner.style.display = "none";
-      const contentType = res.headers.get("content-type") || "";
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Server error: ${errorText}`);
-      }
-
-      if (contentType.includes("application/json")) {
-        return res.json();
-      } else {
-        const text = await res.text();
-        return { message: text };
-      }
-    })
-    .then(data => {
-      if (data.message) {
-        resultDiv.innerText = data.message;
-      } else if (data.choices && data.choices[0].message) {
-        resultDiv.innerText = data.choices[0].message.content;
-      } else {
-        resultDiv.innerText = "Generation failed. Please try again.";
-      }
-    })
-    .catch(err => {
-      console.error("Error generating plan:", err);
-      resultDiv.innerText = "Something went wrong: " + err.message;
-    });
 }
+
+document.getElementById("generate-btn")
+        .addEventListener("click", generatePlan);
 
 // ✅ 登录状态管理
 firebase.auth().onAuthStateChanged(user => {
