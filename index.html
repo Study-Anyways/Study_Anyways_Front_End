@@ -275,50 +275,63 @@
 
   <!-- JS Glue: Four-panel handler -->
   <script>
-    async function generatePlan() {
-      const input = collectStudyInput();
-      const err   = validateInput(input);
-      if (err) { alert(err); return; }
-
-      const spinner = document.getElementById('spinner');
-      spinner.style.display = 'block';
-
-      const user = firebase.auth().currentUser;
-      if (!user) {
-        alert('Please log in first.');
-        spinner.style.display = 'none';
-        return;
-      }
-
-      try {
-        const token = await user.getIdToken();
-        const res   = await fetch(
-          'https://us-central1-study-anyways.cloudfunctions.net/generatePlan',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({ ...input, uid: user.uid })
-          }
-        );
-        spinner.style.display = 'none';
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-
-        document.getElementById('introContent').innerText      = data.introduction   || '';
-        document.getElementById('mainContent').innerText       = data.mainContent    || '';
-        document.getElementById('resourcesContent').innerText  = data.resources      || '';
-        document.getElementById('strategiesContent').innerText = data.strategies     || '';
-      } catch (e) {
-        console.error('Error generating plan:', e);
-        document.getElementById('introContent').innerText = 'Something went wrong: ' + e.message;
-        spinner.style.display = 'none';
-      }
+    <script>
+  async function generatePlan() {
+    const input = collectStudyInput();
+    const err = validateInput(input);
+    if (err) {
+      alert(err);
+      return;
     }
 
-    document.getElementById('generate-btn').addEventListener('click', generatePlan);
-  </script>
+    const spinner = document.getElementById('spinner');
+    if (spinner) spinner.style.display = 'block';
+
+    try {
+      const user = firebase.auth().currentUser;
+      if (!user) throw new Error('Please log in first.');
+
+      const token = await user.getIdToken();
+      const response = await fetch(
+        'https://us-central1-study-anyways.cloudfunctions.net/generatePlan',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ ...input, uid: user.uid })
+        }
+      );
+
+      if (!response.ok) {
+        const msg = await response.text();
+        throw new Error(msg);
+      }
+
+      const data = await response.json();
+
+      // Safely fill panels
+      const mapping = {
+        introContent:      data.introduction,
+        mainContent:       data.mainContent,
+        resourcesContent:  data.resources,
+        strategiesContent: data.strategies
+      };
+      Object.entries(mapping).forEach(([id, text]) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = text || '';
+      });
+    } catch (e) {
+      console.error('Error generating plan:', e);
+      const result = document.getElementById('result');
+      if (result) result.innerText = 'Something went wrong: ' + e.message;
+    } finally {
+      if (spinner) spinner.style.display = 'none';
+    }
+  }
+
+  document.getElementById('generate-btn').addEventListener('click', generatePlan);
+</script>
 </body>
 </html>

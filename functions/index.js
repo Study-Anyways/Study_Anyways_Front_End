@@ -1,6 +1,5 @@
 // 1) Import everything
 const https = require("firebase-functions/v2/https");
-const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const { OpenAI } = require("openai");
 const cors = require("cors");
@@ -69,7 +68,9 @@ Details: ${details}.
 Total time: ${totalDuration}, ${dailyHours}h/day to reach "${goal}" level.
 Style: ${responseStyle}.
 Resources: ${resources}.
-Learning Styles: ${Array.isArray(learningStyles)? learningStyles.join(", "): "none"}.`;
+Learning Styles: ${Array.isArray(learningStyles)? learningStyles.join(", "): "none"}.
+In whatever situation, be as concise as possible, control the whole answers below 1500 tokens.`;
+
 
       try {
         // 3) Call OpenAI
@@ -84,11 +85,14 @@ Learning Styles: ${Array.isArray(learningStyles)? learningStyles.join(", "): "no
         console.log("Raw AI:", raw);
 
         // 4) Slice into 3 sections
-        const m = raw.match(
-          /###Introduction\n([\s\S]*?)\n###Main Content\n([\s\S]*?)\n###Summary\n([\s\S]*)/
-        );
-        if (!m) throw new Error("Unexpected AI format");
-        const [, introduction, mainContent, summary] = m;
+        // four-part regex (with Strategies optional)
+const pattern =
+  /###Introduction\n([\s\S]*?)\n###Main Content\n([\s\S]*?)\n###Resources\n([\s\S]*?)(?:\n###Strategies\n([\s\S]*))?$/;
+const m = raw.match(pattern);
+if (!m) throw new Error("Unexpected AI format");
+const [, introduction, mainContent, resources, strategies = ""] = m;
+
+
 
         // 5) Save to Firestore (use totalDuration & goal, not time/depth)
         await db.collection("history").add({
@@ -105,12 +109,13 @@ Learning Styles: ${Array.isArray(learningStyles)? learningStyles.join(", "): "no
           createdAt: new Date(),
         });
 
-        // 6) Return clean JSON
-        return res.json({
-          introduction: introduction.trim(),
-          mainContent:  mainContent.trim(),
-          summary:      summary.trim()
-        });
+        // then return all four json:
+return res.json({
+  introduction: introduction.trim(),
+  mainContent:  mainContent.trim(),
+  resources:    resources.trim(),
+  strategies:   strategies.trim()
+});
 
       } catch (err) {
         console.error("generatePlan error:", err);
